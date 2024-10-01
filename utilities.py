@@ -87,5 +87,3 @@ def euler_from_quaternion(quat):
     """
     ... # just unpack yaw
     return yaw
-
-

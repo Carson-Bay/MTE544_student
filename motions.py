@@ -3,7 +3,7 @@ import rclpy
 
 from rclpy.node import Node
 
-from utilities import Logger, euler_from_quaternion
+from utilities import Logger, euler_from_quaternion, M_PI
 from rclpy.qos import QoSProfile
 
 # TODO Part 3: Import message types needed: 
@@ -33,6 +33,8 @@ class motion_executioner(Node):
         self.type=motion_type
         
         self.radius_=0.0
+        # TODO: Temp variable for spiral motion, will probably change or fix later
+        self.spiral_forward_vel = 0.01
         
         self.successful_init=False
         self.imu_initialized=False
@@ -84,12 +86,13 @@ class motion_executioner(Node):
         ... # log laser msgs with position msg at that time
                 
     def timer_callback(self):
-        
         if self.odom_initialized and self.laser_initialized and self.imu_initialized:
             self.successful_init=True
             
         if not self.successful_init:
-            return
+            # TODO: Temporary change for testing, delete the pass and uncomment the return
+            pass
+            # return
         
         cmd_vel_msg=Twist()
         
@@ -112,19 +115,39 @@ class motion_executioner(Node):
     # TODO Part 4: Motion functions: complete the functions to generate the proper messages corresponding to the desired motions of the robot
 
     def make_circular_twist(self):
-        
+        # TODO: Not actually sure whether these should be constants or some input parameter or smth
+        dir = -1 # 1 for CCW, -1 for CW
+        turn_radius = 1.0 # [m] TODO: Not actually sure what the units are here
+        forward_vel = 1.0 # [m/s] TODO: Not actually sure what the units are here
+
         msg=Twist()
-        ... # fill up the twist msg for circular motion
+        msg.linear.x = forward_vel
+        msg.angular.z = dir * forward_vel / turn_radius
+
         return msg
 
     def make_spiral_twist(self):
+        # TODO really sketch will return to this
+        dir = -1 # 1 for CCW, -1 for CW
+        start_radius = 1.0 # [m] TODO: Not actually sure what the units are here
+        forward_vel = 1.0 # [m/s] TODO: Not actually sure what the units are here
+        angular_vel = dir * forward_vel / start_radius
+
         msg=Twist()
-        ... # fill up the twist msg for spiral motion
+        msg.linear.x = self.spiral_forward_vel
+        msg.angular.z = angular_vel
+        # msg.linear.y doesn't seem to do anything so either adjust angular or forward vel to create spiral?
+        # msg.angular.y = 2 * M_PI / angular_vel * 0.1
+        self.spiral_forward_vel += 0.01
+        
         return msg
     
     def make_acc_line_twist(self):
+        forward_vel = 1.0 # [m/s]
+        
         msg=Twist()
-        ... # fill up the twist msg for line motion
+        msg.linear.x = forward_vel
+
         return msg
 
 import argparse
@@ -144,7 +167,6 @@ if __name__=="__main__":
     args = argParser.parse_args()
 
     if args.motion.lower() == "circle":
-
         ME=motion_executioner(motion_type=CIRCLE)
     elif args.motion.lower() == "line":
         ME=motion_executioner(motion_type=ACC_LINE)
@@ -156,7 +178,6 @@ if __name__=="__main__":
         print(f"we don't have {args.motion.lower()} motion type")
 
 
-    
     try:
         rclpy.spin(ME)
     except KeyboardInterrupt:
