@@ -33,8 +33,6 @@ class motion_executioner(Node):
         self.type=motion_type
         
         self.radius_=0.0
-        # TODO: Temp variable for spiral motion, will probably change or fix later
-        self.spiral_forward_vel = 0.01
         
         self.successful_init=False
         self.imu_initialized=False
@@ -54,15 +52,13 @@ class motion_executioner(Node):
 
         # TODO Part 5: Create below the subscription to the topics corresponding to the respective sensors
         # IMU subscription
-        self.create_subscription(Imu, "/imu", self.imu_callback, 10)
+        self.create_subscription(Imu, "/imu", self.imu_callback, qos)
         
         # ENCODER subscription
-        self.create_subscription(Odometry, "/odom", self.odom_callback, 10)
+        self.create_subscription(Odometry, "/odom", self.odom_callback, qos)
         
-        # # LaserScan subscription 
-        # # TODO: wrong topic name, unclear which topic laserscans are under
-        # # two subscriptions cant share the same topic, from what I can tell
-        # self.create_subscription(LaserScan, "/odom", self.laser_callback, 10)
+        # LaserScan subscription 
+        self.create_subscription(LaserScan, "/scan", self.laser_callback, qos)
         
         self.create_timer(0.1, self.timer_callback)
 
@@ -74,13 +70,24 @@ class motion_executioner(Node):
     # You can save the needed fields into a list, and pass the list to the log_values function in utilities.py
 
     def imu_callback(self, imu_msg: Imu):
-        ...    # log imu msgs
+        if not self.imu_initialized:
+            self.imu_initialized = True
+
         timestamp = Time.from_msg(imu_msg.header.stamp).nanoseconds
 
         imu_ang_vel = imu_msg.angular_velocity
         imu_lin_acc = imu_msg.linear_acceleration
+
+        acc_x = imu_lin_acc.x
+        acc_y = imu_lin_acc.y
+        angular_z = imu_ang_vel.z
+
+        self.imu_logger.log_values([acc_x, acc_y, angular_z, timestamp])
         
     def odom_callback(self, odom_msg: Odometry):
+        if not self.odom_initialized:
+            self.odom_initialized = True
+
         timestamp = Time.from_msg(odom_msg.header.stamp).nanoseconds
         
         odom_orientation = odom_msg.pose.pose.orientation
@@ -88,41 +95,56 @@ class motion_executioner(Node):
         # odom_pos contains x, y, and z 
         odom_pos = odom_msg.pose.pose.position
 
-        # not sure what to do with the data, currently just printing to console
-        print(f'Message Timestamp = {timestamp}')
-        print(f'Current Robot Orientation = {odom_orientation}')
-        print(f'Current Robot X-Y Position = {odom_pos}')
+        x = odom_pos.x
+        y = odom_pos.y
+        # TODO: Haven't seen the lecture on quaternions yet so dont know how to find the theta yet
+        # I can probably come back to this when I catch up on the lectures hopefully today lol
+        th = odom_orientation.w
+        th = odom_orientation.y
     
-        ... # log odom msgs
+        self.odom_logger.log_values([x, y, th, timestamp])
                 
 
     def laser_callback(self, laser_msg: LaserScan):
+        if not self.laser_initialized:
+            self.laser_initialized = True
+
         timestamp = Time.from_msg(laser_msg.header.stamp).nanoseconds
 
         max_range = laser_msg.range_max
         min_range = laser_msg.range_min
-
-        laser_ranges = laser_msg.ranges
-
-        # TODO: discard range values that are outside the sensor min and max ranges
-        for range in laser_ranges:
-            if laser_ranges[range] < min_range:
-                # discard data
-                pass
-            elif laser_ranges[range] > max_range:
-                # discard data
-                pass
+        angle = laser_msg.angle_min
+        angle_max = laser_msg.angle_max
+        angle_increment = laser_msg.angle_increment
         
-        ... # log laser msgs with position msg at that time
+        for measured_range in laser_msg.ranges:
+            if angle > angle_max:
+                # Not sure what scenarios will trigger this
+                print(f"angle {angle} > angle_max {angle_max}")
+
+            # NOTE: I'm assuming the first range measurement corresponds to angle_min
+            # and each following measurement corresponds to prior angle + increment
+            self.laser_logger.log_values([measured_range, angle, timestamp])
+            angle += angle_increment
+            # NOTE: I think all data outside of the range of the sensor are broadcast as .inf, not sure if we want to keep
+
+
+        # laser_ranges = laser_msg.ranges
+
+        # for range in laser_ranges:
+        #     if laser_ranges[range] < min_range:
+        #         # discard data
+        #         pass
+        #     elif laser_ranges[range] > max_range:
+        #         # discard data
+        #         pass
                 
     def timer_callback(self):
         if self.odom_initialized and self.laser_initialized and self.imu_initialized:
             self.successful_init=True
             
         if not self.successful_init:
-            # TODO: Temporary change for testing, delete the pass and uncomment the return
-            pass
-            # return
+            return
         
         cmd_vel_msg=Twist()
         
@@ -141,41 +163,34 @@ class motion_executioner(Node):
 
         self.vel_publisher.publish(cmd_vel_msg)
         
-    
-    # TODO Part 4: Motion functions: complete the functions to generate the proper messages corresponding to the desired motions of the robot
-
     def make_circular_twist(self):
         # TODO: Not actually sure whether these should be constants or some input parameter or smth
         dir = -1 # 1 for CCW, -1 for CW
-        turn_radius = 1.0 # [m] TODO: Not actually sure what the units are here
-        forward_vel = 1.0 # [m/s] TODO: Not actually sure what the units are here
+        turn_radius = 1.0 # [m]
+        forward_vel = 1.0 # [m/s]
 
-        msg=Twist()
+        msg = Twist()
         msg.linear.x = forward_vel
         msg.angular.z = dir * forward_vel / turn_radius
 
         return msg
 
     def make_spiral_twist(self):
-        # TODO really sketch will return to this
         dir = -1 # 1 for CCW, -1 for CW
-        start_radius = 1.0 # [m] TODO: Not actually sure what the units are here
-        forward_vel = 1.0 # [m/s] TODO: Not actually sure what the units are here
-        angular_vel = dir * forward_vel / start_radius
+        forward_vel = 1.0 # [m/s]
+        # Spiral radius increases based on timer cycle time
+        self.radius_ += 0.01 # [m]
 
-        msg=Twist()
-        msg.linear.x = self.spiral_forward_vel
-        msg.angular.z = angular_vel
-        # msg.linear.y doesn't seem to do anything so either adjust angular or forward vel to create spiral?
-        # msg.angular.y = 2 * M_PI / angular_vel * 0.1
-        self.spiral_forward_vel += 0.01
+        msg = Twist()
+        msg.linear.x = forward_vel
+        msg.angular.z = dir * forward_vel / self.radius_
         
         return msg
     
     def make_acc_line_twist(self):
         forward_vel = 1.0 # [m/s]
         
-        msg=Twist()
+        msg = Twist()
         msg.linear.x = forward_vel
 
         return msg
