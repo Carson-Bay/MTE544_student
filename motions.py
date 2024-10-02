@@ -54,16 +54,15 @@ class motion_executioner(Node):
 
         # TODO Part 5: Create below the subscription to the topics corresponding to the respective sensors
         # IMU subscription
-        
-        ...
+        self.create_subscription(Imu, "/imu", self.imu_callback, 10)
         
         # ENCODER subscription
-
-        ...
+        self.create_subscription(Odometry, "/odom", self.odom_callback, 10)
         
-        # LaserScan subscription 
-        
-        ...
+        # # LaserScan subscription 
+        # # TODO: wrong topic name, unclear which topic laserscans are under
+        # # two subscriptions cant share the same topic, from what I can tell
+        # self.create_subscription(LaserScan, "/odom", self.laser_callback, 10)
         
         self.create_timer(0.1, self.timer_callback)
 
@@ -76,12 +75,43 @@ class motion_executioner(Node):
 
     def imu_callback(self, imu_msg: Imu):
         ...    # log imu msgs
+        timestamp = Time.from_msg(imu_msg.header.stamp).nanoseconds
+
+        imu_ang_vel = imu_msg.angular_velocity
+        imu_lin_acc = imu_msg.linear_acceleration
         
     def odom_callback(self, odom_msg: Odometry):
+        timestamp = Time.from_msg(odom_msg.header.stamp).nanoseconds
         
+        odom_orientation = odom_msg.pose.pose.orientation
+
+        # odom_pos contains x, y, and z 
+        odom_pos = odom_msg.pose.pose.position
+
+        # not sure what to do with the data, currently just printing to console
+        print(f'Message Timestamp = {timestamp}')
+        print(f'Current Robot Orientation = {odom_orientation}')
+        print(f'Current Robot X-Y Position = {odom_pos}')
+    
         ... # log odom msgs
                 
+
     def laser_callback(self, laser_msg: LaserScan):
+        timestamp = Time.from_msg(laser_msg.header.stamp).nanoseconds
+
+        max_range = laser_msg.range_max
+        min_range = laser_msg.range_min
+
+        laser_ranges = laser_msg.ranges
+
+        # TODO: discard range values that are outside the sensor min and max ranges
+        for range in laser_ranges:
+            if laser_ranges[range] < min_range:
+                # discard data
+                pass
+            elif laser_ranges[range] > max_range:
+                # discard data
+                pass
         
         ... # log laser msgs with position msg at that time
                 
