@@ -84,9 +84,21 @@ def euler_yaw_from_quaternion(quat: Quaternion):
     Convert quaternion (w in last place) to euler yaw angle [rad]
     quat = [x, y, z, w]
     """
-    r11 = quat.w**2 + quat.x**2 - quat.y**2 - quat.z**2
-    r21 = 2.0 * (quat.w * quat.z + quat.x * quat.y)
-    
-    yaw = atan2(r21, r11)
+    # Just derived this from the quaternion to rotation matrix equation in modeling_iv lecture
+    # r11 = quat.w**2 + quat.x**2 - quat.y**2 - quat.z**2
+    # r21 = 2.0 * (quat.w * quat.z + quat.x * quat.y)    
+    # yaw = atan2(r21, r11)
+
+    # NOTE: The quaternion seems to have unique pairs of z and w
+    # (signs flipped) when rotating to the same orientation
+    # e.g. a full spin will return an angle of -2*PI -> +2*PI
+    # instead of returning back to 0
+
+    # Commented code above has it jump from -PI to +PI halfway through a full rotation
+
+    # Code below has it go down all the way to -2PI during the first rotation,
+    # jump up to 2PI at the start of the second rotation, and come back down to 0 rad at the end of two full rotations
+    # Not sure which one is preferred or more "correct"
+    yaw = 2 * atan2(quat.z, quat.w)
 
     return yaw

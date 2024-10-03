@@ -40,7 +40,7 @@ class motion_executioner(Node):
                 
         # loggers
         self.imu_logger = Logger('imu_content_'+str(motion_types[motion_type])+'.csv', headers=["acc_x", "acc_y", "angular_z", "stamp"])
-        self.odom_logger = Logger('odom_content_'+str(motion_types[motion_type])+'.csv', headers=["x","y","th", "stamp"])
+        self.odom_logger = Logger('odom_content_'+str(motion_types[motion_type])+'.csv', headers=["x","y", "quat_z", "quat_w", "th", "stamp"])
         self.laser_logger = Logger('laser_content_'+str(motion_types[motion_type])+'.csv', headers=["ranges", "angle_increment", "stamp"])
         
         # TODO Part 3: Create the QoS profile by setting the proper parameters in (...)
@@ -84,10 +84,12 @@ class motion_executioner(Node):
 
         x = odom_pos.x
         y = odom_pos.y
+        quat_z = odom_orientation.z
+        quat_w = odom_orientation.w
         th = euler_yaw_from_quaternion(odom_orientation)
         timestamp = Time.from_msg(odom_msg.header.stamp).nanoseconds
 
-        self.odom_logger.log_values([x, y, th, timestamp])
+        self.odom_logger.log_values([x, y, quat_z, quat_w, th, timestamp])
 
     def laser_callback(self, laser_msg: LaserScan):
         """
