@@ -3,13 +3,9 @@ import rclpy
 
 from rclpy.node import Node
 
-from utilities import Logger, euler_from_quaternion, M_PI
+from utilities import Logger, euler_yaw_from_quaternion
 from rclpy.qos import QoSProfile
 
-# TODO Part 3: Import message types needed: 
-    # For sending velocity commands to the robot: Twist
-    # For the sensors: Imu, LaserScan, and Odometry
-# Check the online documentation to fill in the lines below
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Imu
 from sensor_msgs.msg import LaserScan
@@ -30,27 +26,27 @@ class motion_executioner(Node):
         
         super().__init__("motion_types")
         
-        self.type=motion_type
+        self.type = motion_type
         
-        self.radius_=0.0
+        self.radius_ = 0.0
         
-        self.successful_init=False
-        self.imu_initialized=False
-        self.odom_initialized=False
-        self.laser_initialized=False
+        self.successful_init = False
+        self.imu_initialized = False
+        self.odom_initialized = False
+        self.laser_initialized = False
         
         # TODO Part 3: Create a publisher to send velocity commands by setting the proper parameters in (...)
-        self.vel_publisher=self.create_publisher(Twist, "/cmd_vel", 10)
+        self.vel_publisher = self.create_publisher(Twist, "/cmd_vel", 10)
                 
         # loggers
-        self.imu_logger=Logger('imu_content_'+str(motion_types[motion_type])+'.csv', headers=["acc_x", "acc_y", "angular_z", "stamp"])
-        self.odom_logger=Logger('odom_content_'+str(motion_types[motion_type])+'.csv', headers=["x","y","th", "stamp"])
-        self.laser_logger=Logger('laser_content_'+str(motion_types[motion_type])+'.csv', headers=["ranges", "angle_increment", "stamp"])
+        self.imu_logger = Logger('imu_content_'+str(motion_types[motion_type])+'.csv', headers=["acc_x", "acc_y", "angular_z", "stamp"])
+        self.odom_logger = Logger('odom_content_'+str(motion_types[motion_type])+'.csv', headers=["x","y","th", "stamp"])
+        self.laser_logger = Logger('laser_content_'+str(motion_types[motion_type])+'.csv', headers=["ranges", "angle_increment", "stamp"])
         
         # TODO Part 3: Create the QoS profile by setting the proper parameters in (...)
-        qos=QoSProfile(reliability=2, durability=2, history=1, depth=10)
+        # are we supposed to use the qos for the vel_publisher as well?
+        qos = QoSProfile(reliability=2, durability=2, history=1, depth=10)
 
-        # TODO Part 5: Create below the subscription to the topics corresponding to the respective sensors
         # IMU subscription
         self.create_subscription(Imu, "/imu", self.imu_callback, qos)
         
@@ -60,20 +56,12 @@ class motion_executioner(Node):
         # LaserScan subscription 
         self.create_subscription(LaserScan, "/scan", self.laser_callback, qos)
         
-        self.create_timer(0.1, self.timer_callback)
-
-
-    # TODO Part 5: Callback functions: complete the callback functions of the three sensors to log the proper data.
-    # To also log the time you need to use the rclpy Time class, each ros msg will come with a header, and then
-    # inside the header you have a stamp that has the time in seconds and nanoseconds, you should log it in nanoseconds as 
-    # such: Time.from_msg(imu_msg.header.stamp).nanoseconds
-    # You can save the needed fields into a list, and pass the list to the log_values function in utilities.py
+        self.timer_period_s = 0.1
+        self.create_timer(self.timer_period_s, self.timer_callback)
 
     def imu_callback(self, imu_msg: Imu):
         if not self.imu_initialized:
             self.imu_initialized = True
-
-        timestamp = Time.from_msg(imu_msg.header.stamp).nanoseconds
 
         imu_ang_vel = imu_msg.angular_velocity
         imu_lin_acc = imu_msg.linear_acceleration
@@ -81,6 +69,7 @@ class motion_executioner(Node):
         acc_x = imu_lin_acc.x
         acc_y = imu_lin_acc.y
         angular_z = imu_ang_vel.z
+        timestamp = Time.from_msg(imu_msg.header.stamp).nanoseconds
 
         self.imu_logger.log_values([acc_x, acc_y, angular_z, timestamp])
         
@@ -88,57 +77,52 @@ class motion_executioner(Node):
         if not self.odom_initialized:
             self.odom_initialized = True
 
-        timestamp = Time.from_msg(odom_msg.header.stamp).nanoseconds
-        
+        # odom_orientation contains quaternion values
         odom_orientation = odom_msg.pose.pose.orientation
-
         # odom_pos contains x, y, and z 
         odom_pos = odom_msg.pose.pose.position
 
         x = odom_pos.x
         y = odom_pos.y
-        # TODO: Haven't seen the lecture on quaternions yet so dont know how to find the theta yet
-        # I can probably come back to this when I catch up on the lectures hopefully today lol
-        th = odom_orientation.w
-        th = odom_orientation.y
-    
+        th = euler_yaw_from_quaternion(odom_orientation)
+        timestamp = Time.from_msg(odom_msg.header.stamp).nanoseconds
+
         self.odom_logger.log_values([x, y, th, timestamp])
-                
 
     def laser_callback(self, laser_msg: LaserScan):
+        """
+        NOTE: Laser mounted rigidly to robot (laser frame rotates with robot), so need to consider
+        robot orientation and position in addition to sensor angles / range measurement if trying to map
+        out obstacles or something
+        """
         if not self.laser_initialized:
             self.laser_initialized = True
 
-        timestamp = Time.from_msg(laser_msg.header.stamp).nanoseconds
-
         max_range = laser_msg.range_max
         min_range = laser_msg.range_min
+
         angle = laser_msg.angle_min
         angle_max = laser_msg.angle_max
         angle_increment = laser_msg.angle_increment
+        timestamp = Time.from_msg(laser_msg.header.stamp).nanoseconds
         
         for measured_range in laser_msg.ranges:
             if angle > angle_max:
-                # Not sure what scenarios will trigger this
+                # Not sure what scenarios will trigger this, add an asterisk to check
                 print(f"angle {angle} > angle_max {angle_max}")
+                angle = f"{angle}*"
 
-            # NOTE: I'm assuming the first range measurement corresponds to angle_min
-            # and each following measurement corresponds to prior angle + increment
+            """
+            NOTE: I'm assuming the first range measurement corresponds to angle_min
+            and each following measurement corresponds to prior angle + increment
+            NOTE: I think all data outside of the range of the sensor are broadcast as .inf,
+            not sure how we want to process that
+            """
+            # if min_range <= measured_range <= max_range:
             self.laser_logger.log_values([measured_range, angle, timestamp])
+
             angle += angle_increment
-            # NOTE: I think all data outside of the range of the sensor are broadcast as .inf, not sure if we want to keep
 
-
-        # laser_ranges = laser_msg.ranges
-
-        # for range in laser_ranges:
-        #     if laser_ranges[range] < min_range:
-        #         # discard data
-        #         pass
-        #     elif laser_ranges[range] > max_range:
-        #         # discard data
-        #         pass
-                
     def timer_callback(self):
         if self.odom_initialized and self.laser_initialized and self.imu_initialized:
             self.successful_init=True
@@ -164,7 +148,6 @@ class motion_executioner(Node):
         self.vel_publisher.publish(cmd_vel_msg)
         
     def make_circular_twist(self):
-        # TODO: Not actually sure whether these should be constants or some input parameter or smth
         dir = -1 # 1 for CCW, -1 for CW
         turn_radius = 1.0 # [m]
         forward_vel = 1.0 # [m/s]
@@ -178,8 +161,9 @@ class motion_executioner(Node):
     def make_spiral_twist(self):
         dir = -1 # 1 for CCW, -1 for CW
         forward_vel = 1.0 # [m/s]
+        radius_increase_per_second = 0.1 # [m]
         # Spiral radius increases based on timer cycle time
-        self.radius_ += 0.01 # [m]
+        self.radius_ += radius_increase_per_second * self.timer_period_s
 
         msg = Twist()
         msg.linear.x = forward_vel
@@ -198,14 +182,9 @@ class motion_executioner(Node):
 import argparse
 
 if __name__=="__main__":
-    
-
     argParser=argparse.ArgumentParser(description="input the motion type")
 
-
     argParser.add_argument("--motion", type=str, default="circle")
-
-
 
     rclpy.init()
 
@@ -221,7 +200,6 @@ if __name__=="__main__":
 
     else:
         print(f"we don't have {args.motion.lower()} motion type")
-
 
     try:
         rclpy.spin(ME)

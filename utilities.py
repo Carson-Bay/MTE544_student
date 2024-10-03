@@ -1,4 +1,5 @@
-from math import atan2, asin, sqrt
+from math import atan2, asin, sqrt, acos
+from geometry_msgs.msg import Quaternion
 
 M_PI=3.1415926535
 
@@ -19,7 +20,6 @@ class Logger:
 
 
     def log_values(self, values_list):
-
         with open(self.filename, 'a') as file:
             vals_str=""
 
@@ -79,11 +79,14 @@ class FileReader:
         return headers, table
 
 
-# TODO Part 5: Implement the conversion from Quaternion to Euler Angles
-def euler_from_quaternion(quat):
+def euler_yaw_from_quaternion(quat: Quaternion):
     """
-    Convert quaternion (w in last place) to euler roll, pitch, yaw.
+    Convert quaternion (w in last place) to euler yaw angle [rad]
     quat = [x, y, z, w]
     """
-    ... # just unpack yaw
+    r11 = quat.w**2 + quat.x**2 - quat.y**2 - quat.z**2
+    r21 = 2.0 * (quat.w * quat.z + quat.x * quat.y)
+    
+    yaw = atan2(r21, r11)
+
     return yaw
