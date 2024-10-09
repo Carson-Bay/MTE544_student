@@ -66,7 +66,7 @@ def imu_plotter(filename):
         # clearing filtered data so it can be populated again
         filtered_values.clear()
 
-    plt.legend(["X linear acceleration [m/s^2]", "Y linear acceleration [m/s^2]", "Z angular acceleration [rad/s^2]"])
+    plt.legend(["X linear acceleration [m/s^2]", "Y linear acceleration [m/s^2]", "Z angular velocity [rad/s]"])
     plt.grid()
     plt.title("Moving average filtered IMU data, window size = " + str(filter_strength))
     plt.xlabel("Time [nanoseconds]")
