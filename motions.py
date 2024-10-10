@@ -28,7 +28,7 @@ class motion_executioner(Node):
         
         self.type = motion_type
         
-        self.radius_ = 0.0
+        self.radius_ = 0.1
         
         self.successful_init = False
         self.imu_initialized = False
@@ -109,10 +109,10 @@ class motion_executioner(Node):
         timestamp = Time.from_msg(laser_msg.header.stamp).nanoseconds
         
         for measured_range in laser_msg.ranges:
-            if angle > angle_max:
-                # Not sure what scenarios will trigger this, add an asterisk to check
-                print(f"angle {angle} > angle_max {angle_max}")
-                angle = f"{angle}*"
+            # if angle > angle_max:
+            #     # Not sure what scenarios will trigger this, add an asterisk to check
+            #     print(f"angle {angle} > angle_max {angle_max}")
+            #     angle = f"{angle}*"
 
             """
             NOTE: I'm assuming the first range measurement corresponds to angle_min
