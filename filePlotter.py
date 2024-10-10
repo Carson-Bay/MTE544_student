@@ -72,7 +72,52 @@ def imu_plotter(filename):
     plt.xlabel("Time [nanoseconds]")
     plt.ylabel("Acceleration data")
     plt.show()
-            
+
+def odom_plotter(filename, shape = None):
+    _headers, values=FileReader(filename).read_file() 
+
+    first_stamp=values[0][-1]
+    time_list = []
+    x = []
+    y = []
+    theta = []
+
+    for line in values:
+        time_list.append(line[-1] - first_stamp)
+        x.append(line[0])
+        y.append(line[1])
+        theta.append(line[4])
+
+    # Plotting trajectory
+    fig, axs = plt.subplots(2)
+    axs[0].plot(x, y, label='Trajectory')
+    axs[0].scatter(x[0], y[0], color='green', label=f'Start ({round(x[0], 2)}, {round(y[0], 2)})')
+    axs[0].scatter(x[-1], y[-1], color='red', label=f'End ({round(x[-1], 2)}, {round(y[-1], 2)})')
+    axs[0].set_title(f'x - vs - y ({shape})')
+    axs[0].set_xlabel('x (m)')
+    axs[0].set_ylabel('y (m)')
+    axs[0].legend()
+    axs[0].grid(True)
+    axs[0].axis('equal')
+    
+    # Plotting x and y wrt t
+    axs[1].set_title(f'x, y, th- vs -t ({shape})')
+    axs[1].plot(time_list, x, label=f'x', color='red')
+    axs[1].plot(time_list, y, label=f'y', color='orange')
+    axs[1].set_xlabel('Time (ns)')
+    axs[1].set_ylabel('Position (m)')
+    axs[1].grid(True)
+    # Plotting theta wrt t on the same plot but on secondary axis
+    ax2 = axs[1].twinx()
+    ax2.plot(time_list, theta, label=f'th', color='green')
+    ax2.set_ylabel('Angle (rad)')
+    lines, labels = axs[1].get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax2.grid(True)
+    ax2.legend(lines + lines2, labels + labels2, loc=0)
+    
+    fig.tight_layout()
+    plt.show()
 
 import argparse
 
@@ -87,7 +132,11 @@ if __name__=="__main__":
 
     filenames=args.files
     for filename in filenames:
+        shape = str(filename).split(".")[0].split("_")[-1]
+
         if "imu" in filename:
             imu_plotter(filename)
+        elif "odom" in filename:
+            odom_plotter(filename, shape)
         else:
             plot_errors(filename)
