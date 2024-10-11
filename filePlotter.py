@@ -117,6 +117,22 @@ def odom_plotter(filename, shape = None):
     ax2.legend(lines + lines2, labels + labels2, loc=0)
     
     fig.tight_layout()
+            
+def laser_plotter(filename):
+    headers, values=FileReader(filename).read_file() 
+    ranges = []
+    angle_increment = []
+    for value in values:
+        ranges.append(value[0])
+        angle_increment.append(value[1])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='polar')
+    ax.scatter(angle_increment, ranges, s=1)
+    # ax.set_rticks([0.5, 1, 1.5, 2])  # Less radial ticks
+    ax.set_rlabel_position(-22.5)  # Move radial labels away from plotted line
+    ax.set_title("Laser Range Data During Spiral Motion")
+    ax.grid(True)
     plt.show()
 
 import argparse
@@ -138,5 +154,7 @@ if __name__=="__main__":
             imu_plotter(filename)
         elif "odom" in filename:
             odom_plotter(filename, shape)
+        if "laser" in filename:
+            laser_plotter(filename)
         else:
             plot_errors(filename)
