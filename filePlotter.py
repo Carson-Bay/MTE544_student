@@ -4,6 +4,8 @@
 
 import matplotlib.pyplot as plt
 from utilities import FileReader
+import math
+import numpy as np
 
 def plot_errors(filename):
     
@@ -119,18 +121,63 @@ def odom_plotter(filename, shape = None):
     fig.tight_layout()
             
 def laser_plotter(filename):
-    headers, values=FileReader(filename).read_file() 
+    headers, values=FileReader(filename).read_file()
+    _headers, odom_values=FileReader(f"odom{filename[5:]}").read_file() 
     ranges = []
     angle_increment = []
+    angle_timestamps = []
+
+    current_range_count = 0
+    # is the timestamp the reading start time or the broadcast time...
+    curr_timestamp = values[0][-1]
     for value in values:
+        timestamp = value[-1]
+        if timestamp != curr_timestamp:
+            angle_timestamps += np.linspace(curr_timestamp, timestamp, current_range_count, endpoint=False).tolist()
+            current_range_count = 0
+            curr_timestamp = timestamp
+
         ranges.append(value[0])
         angle_increment.append(value[1])
+        current_range_count += 1
+        # angle_timestamps.append(value[-1])
+    
+    xy_time = []
+    x = []
+    y = []
+    theta = []
+    for line in odom_values:
+        x.append(line[0])
+        y.append(line[1])
+        theta.append(line[4])
+        xy_time.append(line[-1])
+    
+    current_pos_index = 0
+
+    new_point_x = []
+    new_point_y = []
+    for i in range(len(angle_timestamps)):
+        if ranges[i] > 10:
+            continue
+
+        robot_frame_x = ranges[i] * math.cos(angle_increment[i])
+        robot_frame_y = ranges[i] * math.sin(angle_increment[i])
+        
+        while current_pos_index + 1 < len(xy_time) and xy_time[current_pos_index + 1] < angle_timestamps[i]:
+            current_pos_index += 1
+        
+        curr_th = theta[current_pos_index]
+        curr_x = x[current_pos_index]
+        curr_y = y[current_pos_index]
+        new_point_x.append(math.cos(curr_th) * robot_frame_x - math.sin(curr_th) * robot_frame_y + curr_x)
+        new_point_y.append(math.sin(curr_th) * robot_frame_x + math.cos(curr_th) * robot_frame_y + curr_y)
 
     fig = plt.figure()
-    ax = fig.add_subplot(projection='polar')
-    ax.scatter(angle_increment, ranges, s=1)
+    ax = fig.add_subplot()
+    ax.scatter(new_point_x, new_point_y)
+    ax.scatter(x, y)
     # ax.set_rticks([0.5, 1, 1.5, 2])  # Less radial ticks
-    ax.set_rlabel_position(-22.5)  # Move radial labels away from plotted line
+    # ax.set_rlabel_position(-22.5)  # Move radial labels away from plotted line
     ax.set_title("Laser Range Data During Spiral Motion")
     ax.grid(True)
     plt.show()
