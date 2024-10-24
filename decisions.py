@@ -62,19 +62,23 @@ class decision_maker(Node):
     def timerCallback(self):
         
         # TODO Part 3: Run the localization node
-        ...    # Remember that this file is already running the decision_maker node.
+        # Remember that this file is already running the decision_maker node.
+        spin_once(self.localizer)
 
-        if self.localizer.getPose()  is  None:
+        if self.localizer.getPose() is None:
             print("waiting for odom msgs ....")
             return
 
         vel_msg=Twist()
         
         # TODO Part 3: Check if you reached the goal
+        error_threshold = 1 # dummy error threshold value for now
         if type(self.goal) == list:
-            reached_goal=...
-        else: 
-            reached_goal=...
+            # trajectory_planner return type [[x1,y1], ..., [xn,yn]]
+            reached_goal = calculate_linear_error(self.localizer.pose, self.goal[-1]) < error_threshold
+        else:
+            # point_planner return type (x, y)
+            reached_goal = calculate_linear_error(self.localizer.pose, self.goal) < error_threshold
         
 
         if reached_goal:
@@ -85,7 +89,7 @@ class decision_maker(Node):
             self.controller.PID_linear.logger.save_log()
             
             #TODO Part 3: exit the spin
-            ... 
+            raise SystemExit
         
         velocity, yaw_rate = self.controller.vel_request(self.localizer.getPose(), self.goal, True)
 
@@ -112,9 +116,7 @@ def main(args=None):
         DM=decision_maker(...)
     else:
         print("invalid motion type", file=sys.stderr)        
-    
-    
-    
+
     try:
         spin(DM)
     except SystemExit:
