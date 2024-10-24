@@ -2,10 +2,10 @@ from rclpy.time import Time
 from utilities import Logger
 
 # Controller type
-P=0 # poportional
-PD=1 # proportional and derivative
-PI=2 # proportional and integral
-PID=3 # proportional, integral, derivative
+P="P" # poportional
+PD="PD" # proportional and derivative
+PI="PI" # proportional and integral
+PID="PID" # proportional, integral, derivative
 
 class PID_ctrl:
     

@@ -1,5 +1,7 @@
 # Type of planner
 POINT_PLANNER=0; TRAJECTORY_PLANNER=1
+# Type of trajectory
+PARABOLA = "PARABOLA"; SIGMOID = "SIGMOID"
 
 
 
@@ -9,13 +11,13 @@ class planner:
         self.type=type_
 
     
-    def plan(self, goalPoint=[-1.0, -1.0]):
+    def plan(self, goalPoint=[-1.0, -1.0], trajectory=PARABOLA):
         
         if self.type==POINT_PLANNER:
             return self.point_planner(goalPoint)
         
         elif self.type==TRAJECTORY_PLANNER:
-            return self.trajectory_planner()
+            return self.trajectory_planner(trajectory)
 
 
     def point_planner(self, goalPoint):
@@ -24,8 +26,12 @@ class planner:
         return x, y
 
     # TODO Part 6: Implement the trajectories here
-    def trajectory_planner(self):
-        pass
+    def trajectory_planner(self, trajectory):
+        if trajectory == PARABOLA:
+            pass
+        elif trajectory == SIGMOID:
+            pass
+
         # the return should be a list of trajectory points: [ [x1,y1], ..., [xn,yn]]
-        # return 
+        return 
 

@@ -4,7 +4,7 @@
 import sys
 
 from utilities import euler_from_quaternion, calculate_angular_error, calculate_linear_error
-from pid import PID_ctrl
+from pid import PID_ctrl, P, PD, PI, PID
 
 from rclpy import init, spin, spin_once
 from rclpy.node import Node
@@ -15,8 +15,8 @@ from nav_msgs.msg import Odometry as odom
 
 from localization import localization, rawSensor
 
-from planner import TRAJECTORY_PLANNER, POINT_PLANNER, planner
-from controller import controller, trajectoryController, P, PD, PI, PID
+from planner import TRAJECTORY_PLANNER, POINT_PLANNER, planner, PARABOLA, SIGMOID
+from controller import controller, trajectoryController
 
 # You may add any other imports you may need/want to use below
 # import ...
@@ -32,7 +32,8 @@ class decision_maker(Node):
         goalPoint=[-1, -1],
         rate=10,
         motion_type=POINT_PLANNER,
-        control_type=PID,
+        control_type=PD,
+        trajectory = PARABOLA,
     ):
         super().__init__("decision_maker")
 
@@ -44,6 +45,7 @@ class decision_maker(Node):
         # Instantiate the controller
         # TODO Part 5: Tune your parameters here
         if motion_type == POINT_PLANNER:
+            file_name = f"_{control_type}_POINT"
             self.controller=controller(
                 klp=0.2, # linear P
                 klv=0.5, # linear D
@@ -52,10 +54,12 @@ class decision_maker(Node):
                 kav=0.6, # angular D
                 kai=0.2, # angular I
                 control_type=control_type,
+                file_name=file_name,
             )
             self.planner=planner(POINT_PLANNER)    
     
         elif motion_type==TRAJECTORY_PLANNER:
+            file_name = f"_{control_type}_{trajectory}"
             self.controller=trajectoryController(
                 klp=0.2, # linear P
                 klv=0.5, # linear D
@@ -64,6 +68,7 @@ class decision_maker(Node):
                 kav=0.6, # angular D
                 kai=0.2, # angular I
                 control_type=control_type,
+                file_name=file_name,
             )
             self.planner=planner(TRAJECTORY_PLANNER)
 
@@ -72,11 +77,11 @@ class decision_maker(Node):
 
 
         # Instantiate the localization, use rawSensor for now  
-        self.localizer=localization(rawSensor, control_type=control_type)
+        self.localizer=localization(rawSensor, file_name=file_name)
 
         # Instantiate the planner
         # NOTE: goalPoint is used only for the pointPlanner
-        self.goal=self.planner.plan(goalPoint)
+        self.goal=self.planner.plan(goalPoint, trajectory)
 
         self.create_timer(publishing_period, self.timerCallback)
 

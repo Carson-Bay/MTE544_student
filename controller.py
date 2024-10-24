@@ -1,31 +1,20 @@
 import numpy as np
 
 
-from pid import PID_ctrl
+from pid import PID_ctrl, P, PD, PI, PID
 from utilities import euler_from_quaternion, calculate_angular_error, calculate_linear_error
 
 M_PI=3.1415926535
-
-P=0; PD=1; PI=2; PID=3
 
 class controller:
     
     
     # Default gains of the controller for linear and angular motions
-    def __init__(self, klp=0.2, klv=0.2, kli=0.2, kap=0.2, kav=0.2, kai=0.2, control_type=P):
+    def __init__(self, klp=0.2, klv=0.2, kli=0.2, kap=0.2, kav=0.2, kai=0.2, control_type=P, file_name=None):
         
         # TODO Part 5 and 6: Modify the below lines to test your PD, PI, and PID controller
-        if control_type == P:
-            name = "P"
-        elif control_type == PD:
-            name = "PD"
-        elif control_type == PI:
-            name = "PI"
-        elif control_type == PID:
-            name = "PID"
-
-        self.PID_linear=PID_ctrl(control_type, klp, klv, kli, filename_=f"linear_{name}.csv")
-        self.PID_angular=PID_ctrl(control_type, kap, kav, kai, filename_=f"angular_{name}.csv")
+        self.PID_linear=PID_ctrl(control_type, klp, klv, kli, filename_=f"linear{file_name}.csv")
+        self.PID_angular=PID_ctrl(control_type, kap, kav, kai, filename_=f"angular{file_name}.csv")
 
     
     def vel_request(self, pose, goal, status):
@@ -50,9 +39,9 @@ class controller:
 
 class trajectoryController(controller):
 
-    def __init__(self, klp=0.2, klv=0.2, kli=0.2, kap=0.2, kav=0.2, kai=0.2):
+    def __init__(self, klp=0.2, klv=0.2, kli=0.2, kap=0.2, kav=0.2, kai=0.2, control_type=P, file_name=None):
         
-        super().__init__(klp, klv, kli, kap, kav, kai)
+        super().__init__(klp, klv, kli, kap, kav, kai, control_type, file_name)
     
     def vel_request(self, pose, listGoals, status):
         
