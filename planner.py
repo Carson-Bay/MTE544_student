@@ -2,7 +2,7 @@
 POINT_PLANNER=0; TRAJECTORY_PLANNER=1
 # Type of trajectory
 PARABOLA = "PARABOLA"; SIGMOID = "SIGMOID"
-
+from math import exp
 
 
 class planner:
@@ -27,11 +27,18 @@ class planner:
 
     # TODO Part 6: Implement the trajectories here
     def trajectory_planner(self, trajectory):
+        trajectory_list = []
+        step = 0.01
         if trajectory == PARABOLA:
-            pass
+            for x in range(0, 1.5 + step, step):
+                y = x **2
+                trajectory_list.append([x, y])
+
         elif trajectory == SIGMOID:
-            pass
+            for x in range(0, 2.5 + step, step):
+                y = 2 / (1 + exp(-2 * x)) - 1
+                trajectory_list.append([x, y])
 
         # the return should be a list of trajectory points: [ [x1,y1], ..., [xn,yn]]
-        return 
+        return trajectory_list
 
