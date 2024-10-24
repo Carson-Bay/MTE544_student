@@ -16,7 +16,7 @@ from nav_msgs.msg import Odometry as odom
 from localization import localization, rawSensor
 
 from planner import TRAJECTORY_PLANNER, POINT_PLANNER, planner
-from controller import controller, trajectoryController
+from controller import controller, trajectoryController, P, PD, PI, PID
 
 # You may add any other imports you may need/want to use below
 # import ...
@@ -24,8 +24,16 @@ from controller import controller, trajectoryController
 
 class decision_maker(Node):
     
-    def __init__(self, publisher_msg, publishing_topic, qos_publisher, goalPoint, rate=10, motion_type=POINT_PLANNER):
-
+    def __init__(
+        self,
+        publisher_msg,
+        publishing_topic,
+        qos_publisher, 
+        goalPoint=[-1, -1],
+        rate=10,
+        motion_type=POINT_PLANNER,
+        control_type=PID,
+    ):
         super().__init__("decision_maker")
 
         #TODO Part 4: Create a publisher for the topic responsible for robot's motion
@@ -35,14 +43,28 @@ class decision_maker(Node):
         
         # Instantiate the controller
         # TODO Part 5: Tune your parameters here
-    
         if motion_type == POINT_PLANNER:
-            self.controller=controller(klp=0.2, klv=0.5, kap=0.8, kav=0.6)
+            self.controller=controller(
+                klp=0.2, # linear P
+                klv=0.5, # linear D
+                kli=0.2, # linear I
+                kap=0.8, # angular P
+                kav=0.6, # angular D
+                kai=0.2, # angular I
+                control_type=control_type,
+            )
             self.planner=planner(POINT_PLANNER)    
     
-    
         elif motion_type==TRAJECTORY_PLANNER:
-            self.controller=trajectoryController(klp=0.2, klv=0.5, kap=0.8, kav=0.6)
+            self.controller=trajectoryController(
+                klp=0.2, # linear P
+                klv=0.5, # linear D
+                kli=0.2, # linear I
+                kap=0.8, # angular P
+                kav=0.6, # angular D
+                kai=0.2, # angular I
+                control_type=control_type,
+            )
             self.planner=planner(TRAJECTORY_PLANNER)
 
         else:
@@ -50,7 +72,7 @@ class decision_maker(Node):
 
 
         # Instantiate the localization, use rawSensor for now  
-        self.localizer=localization(rawSensor)
+        self.localizer=localization(rawSensor, control_type=control_type)
 
         # Instantiate the planner
         # NOTE: goalPoint is used only for the pointPlanner
@@ -113,11 +135,10 @@ def main(args=None):
     
 
     # TODO Part 4: instantiate the decision_maker with the proper parameters for moving the robot
-    goal_point = [1, -3]
     if args.motion.lower() == "point":
-        DM=decision_maker(Twist, "/cmd_vel", qos, goal_point, motion_type=POINT_PLANNER)
+        DM=decision_maker(Twist, "/cmd_vel", qos, motion_type=POINT_PLANNER)
     elif args.motion.lower() == "trajectory":
-        DM=decision_maker(Twist, "/cmd_vel", qos, goal_point, motion_type=TRAJECTORY_PLANNER)
+        DM=decision_maker(Twist, "/cmd_vel", qos, motion_type=TRAJECTORY_PLANNER)
     else:
         print("invalid motion type", file=sys.stderr)        
 

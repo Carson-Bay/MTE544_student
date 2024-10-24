@@ -10,17 +10,27 @@ from nav_msgs.msg import Odometry as odom
 from rclpy import init, spin
 
 rawSensor = 0
+P=0; PD=1; PI=2; PID=3
 class localization(Node):
     
-    def __init__(self, localizationType=rawSensor):
+    def __init__(self, localizationType=rawSensor, control_type=P):
 
         super().__init__("localizer")
+
+        if control_type == P:
+            name = "P"
+        elif control_type == PD:
+            name = "PD"
+        elif control_type == PI:
+            name = "PI"
+        elif control_type == PID:
+            name = "PID"
         
         # TODO Part 3: Define the QoS profile variable based on whether you are using the simulation (Turtlebot 3 Burger) or the real robot (Turtlebot 4)
         # Remember to define your QoS profile based on the information available in "ros2 topic info /odom --verbose" as explained in Tutorial 3
         odom_qos = QoSProfile(reliability=2, durability=2, history=1, depth=10)
         
-        self.loc_logger=Logger("robot_pose.csv", ["x", "y", "theta", "stamp"])
+        self.loc_logger=Logger(f"robot_pose_{name}.csv", ["x", "y", "theta", "stamp"])
         self.pose=None
         
         if localizationType == rawSensor:
