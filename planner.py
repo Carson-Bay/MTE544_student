@@ -33,7 +33,7 @@ class planner:
         if trajectory == PARABOLA:
             x_range = np.arange(0, 1.5 + step, step)
             for x in x_range:
-                y = x **2
+                y = x ** 2
                 trajectory_list.append([x, y])
 
         elif trajectory == SIGMOID:

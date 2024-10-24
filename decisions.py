@@ -32,8 +32,8 @@ class decision_maker(Node):
         goalPoint=[-1, -1],
         rate=10,
         motion_type=POINT_PLANNER,
-        control_type=PD,
-        trajectory = PARABOLA,
+        control_type=PID,
+        trajectory=PARABOLA,
     ):
         super().__init__("decision_maker")
 

@@ -21,6 +21,8 @@ def plot_errors(filename):
 
 
     axes[0].plot([lin[0] for lin in values], [lin[1] for lin in values])
+    axes[0].scatter(values[0][0], values[0][1], c="green") # start
+    axes[0].scatter(values[-1][0], values[-1][1], c="red") # end
     axes[0].set_title("state space")
     axes[0].grid()
 
