@@ -29,7 +29,7 @@ class decision_maker(Node):
         super().__init__("decision_maker")
 
         #TODO Part 4: Create a publisher for the topic responsible for robot's motion
-        self.publisher=... 
+        self.publisher = self.create_publisher(publisher_msg, publishing_topic, qos_publisher)
 
         publishing_period=1/rate
         
@@ -72,7 +72,7 @@ class decision_maker(Node):
         vel_msg=Twist()
         
         # TODO Part 3: Check if you reached the goal
-        error_threshold = 1 # dummy error threshold value for now
+        error_threshold = 0.01 # dummy error threshold value for now
         if type(self.goal) == list:
             # trajectory_planner return type [[x1,y1], ..., [xn,yn]]
             reached_goal = calculate_linear_error(self.localizer.pose, self.goal[-1]) < error_threshold
@@ -94,7 +94,10 @@ class decision_maker(Node):
         velocity, yaw_rate = self.controller.vel_request(self.localizer.getPose(), self.goal, True)
 
         #TODO Part 4: Publish the velocity to move the robot
-        ... 
+        vel_msg.linear.x = velocity
+        vel_msg.angular.z = yaw_rate
+
+        self.publisher.publish(vel_msg)
 
 import argparse
 
@@ -106,14 +109,15 @@ def main(args=None):
     # TODO Part 3: You migh need to change the QoS profile based on whether you're using the real robot or in simulation.
     # Remember to define your QoS profile based on the information available in "ros2 topic info /odom --verbose" as explained in Tutorial 3
     
-    odom_qos=QoSProfile(reliability=2, durability=2, history=1, depth=10)
+    qos = QoSProfile(reliability=1, durability=2, history=1, depth=10)
     
 
     # TODO Part 4: instantiate the decision_maker with the proper parameters for moving the robot
+    goal_point = [1, -3]
     if args.motion.lower() == "point":
-        DM=decision_maker(...)
+        DM=decision_maker(Twist, "/cmd_vel", qos, goal_point, motion_type=POINT_PLANNER)
     elif args.motion.lower() == "trajectory":
-        DM=decision_maker(...)
+        DM=decision_maker(Twist, "/cmd_vel", qos, goal_point, motion_type=TRAJECTORY_PLANNER)
     else:
         print("invalid motion type", file=sys.stderr)        
 

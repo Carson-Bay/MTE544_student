@@ -34,7 +34,7 @@ class localization(Node):
         
         # TODO Part 3: Read x,y, theta, and record the stamp
         x = pose_msg.pose.pose.position.x
-        y = pose_msg.pose.pose.position.x
+        y = pose_msg.pose.pose.position.y
         theta = euler_from_quaternion(pose_msg.pose.pose.orientation)
         stamp = pose_msg.header.stamp
 
