@@ -3,6 +3,7 @@ POINT_PLANNER=0; TRAJECTORY_PLANNER=1
 # Type of trajectory
 PARABOLA = "PARABOLA"; SIGMOID = "SIGMOID"
 from math import exp
+import numpy as np
 
 
 class planner:
@@ -30,12 +31,14 @@ class planner:
         trajectory_list = []
         step = 0.01
         if trajectory == PARABOLA:
-            for x in range(0, 1.5 + step, step):
+            x_range = np.arange(0, 1.5 + step, step)
+            for x in x_range:
                 y = x **2
                 trajectory_list.append([x, y])
 
         elif trajectory == SIGMOID:
-            for x in range(0, 2.5 + step, step):
+            x_range = np.arange(0, 2.5 + step, step)
+            for x in x_range:
                 y = 2 / (1 + exp(-2 * x)) - 1
                 trajectory_list.append([x, y])
 
