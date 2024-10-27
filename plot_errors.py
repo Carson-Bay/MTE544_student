@@ -66,8 +66,11 @@ def plot_linear_angular_errors(linear_filename, angular_filename, control_type, 
     fig, axes = plt.subplots(1,2, figsize=(14,6))
     
     axes[0].set_title(f"Linear Errors for {control_type} {trajectory}")
-    for i in range(0, len(headers) - 1):
-        axes[0].plot(time_list, [lin[i] for lin in values], label= headers[i]+ " linear")
+    # for i in range(0, len(headers) - 1):
+    #     axes[0].plot(time_list, [lin[i] for lin in values], label= headers[i]+ " linear")
+    axes[0].plot(time_list, [lin[0] for lin in values], label= headers[0]+ " linear [m]")
+    axes[0].plot(time_list, [lin[1] for lin in values], label= headers[1]+ " linear [m/s]")
+    axes[0].plot(time_list, [lin[2] for lin in values], label= headers[2]+ " linear [m*s]")
 
     axes[0].legend()
     axes[0].grid()
@@ -84,8 +87,11 @@ def plot_linear_angular_errors(linear_filename, angular_filename, control_type, 
         time_list.append(val[-1] - first_stamp)
     
     axes[1].set_title(f"Angular Errors for {control_type} {trajectory}")
-    for i in range(0, len(headers) - 1):
-        axes[1].plot(time_list, [lin[i] for lin in values], label= headers[i]+ " angular")
+    # for i in range(0, len(headers) - 1):
+    #     axes[0].plot(time_list, [lin[i] for lin in values], label= headers[i]+ " angular")
+    axes[1].plot(time_list, [lin[0] for lin in values], label= headers[0]+ " angular [rad]")
+    axes[1].plot(time_list, [lin[1] for lin in values], label= headers[1]+ " angular [rad/s]")
+    axes[1].plot(time_list, [lin[2] for lin in values], label= headers[2]+ " angular [rad*s]")
 
     axes[1].legend()
     axes[1].grid()
@@ -114,11 +120,15 @@ def plot(control_type: str, trajectory: str):
     axes[0].grid()
     axes[0].set_xlabel("x [m]")
     axes[0].set_ylabel("y [m]")
+    axes[0].legend()
 
     
     axes[1].set_title(f"States of x, y, theta for {control_type} {trajectory}")
-    for i in range(0, len(headers) - 1):
-        axes[1].plot(time_list, [lin[i] for lin in values], label= headers[i])
+    # for i in range(0, len(headers) - 1):
+    #     axes[1].plot(time_list, [lin[i] for lin in values], label= headers[i])
+    axes[1].plot(time_list, [lin[0] for lin in values], label= headers[0] + " [m]")
+    axes[1].plot(time_list, [lin[1] for lin in values], label= headers[1] + " [m]")
+    axes[1].plot(time_list, [lin[2] for lin in values], label= headers[2] + " [rad]")
     
 
     axes[1].legend()
