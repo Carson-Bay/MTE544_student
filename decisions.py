@@ -29,7 +29,7 @@ class decision_maker(Node):
         publisher_msg,
         publishing_topic,
         qos_publisher, 
-        goalPoint=[-1, -1],
+        goalPoint=[2, 1],
         rate=10,
         motion_type=POINT_PLANNER,
         control_type=PID,
@@ -47,7 +47,7 @@ class decision_maker(Node):
         if motion_type == POINT_PLANNER:
             file_name = f"_{control_type}_POINT"
             self.controller=controller(
-                klp=0.2, # linear P
+                klp=0.6, # linear P
                 klv=0.5, # linear D
                 kli=0.2, # linear I
                 kap=0.8, # angular P
@@ -61,11 +61,11 @@ class decision_maker(Node):
         elif motion_type==TRAJECTORY_PLANNER:
             file_name = f"_{control_type}_{trajectory}"
             self.controller=trajectoryController(
-                klp=0.2, # linear P
+                klp=0.3, # linear P
                 klv=0.5, # linear D
                 kli=0.2, # linear I
-                kap=0.8, # angular P
-                kav=0.6, # angular D
+                kap=1.3, # angular P
+                kav=0.4, # angular D
                 kai=0.2, # angular I
                 control_type=control_type,
                 file_name=file_name,

@@ -29,15 +29,16 @@ class planner:
     # TODO Part 6: Implement the trajectories here
     def trajectory_planner(self, trajectory):
         trajectory_list = []
-        step = 0.01
+        step = 0.02
         if trajectory == PARABOLA:
-            x_range = np.arange(0, 1.5 + step, step)
+            x_range = np.linspace(0, 1.5, 20)
             for x in x_range:
                 y = x ** 2
                 trajectory_list.append([x, y])
-
+            
         elif trajectory == SIGMOID:
-            x_range = np.arange(0, 2.5 + step, step)
+            x_range = np.linspace(0, 2.5, 20)
+            # x_range = np.arange(0, 2.5 + step, step)
             for x in x_range:
                 y = 2 / (1 + exp(-2 * x)) - 1
                 trajectory_list.append([x, y])

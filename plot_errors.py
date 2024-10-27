@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from utilities import FileReader
-
+import numpy as np
+from math import exp
 
 
 
@@ -23,6 +24,20 @@ def plot_errors(filename):
     axes[0].plot([lin[0] for lin in values], [lin[1] for lin in values])
     axes[0].scatter(values[0][0], values[0][1], c="green") # start
     axes[0].scatter(values[-1][0], values[-1][1], c="red") # end
+    # parabola ref plot
+    trajectory_list = [[ (x/25.0) ,(x/25.0)**2] for x in range(0,50)]
+    traj_list = np.asarray(trajectory_list)
+    axes[0].scatter(traj_list[:,0], traj_list[:,1], s=5, c="green")
+
+    # sigmoid ref plot
+    x_range = np.linspace(0, 2.5, 20)
+    # x_range = np.arange(0, 2.5 + step, step)
+    for x in x_range:
+        y = 2 / (1 + exp(-2 * x)) - 1
+        trajectory_list.append([x, y])
+    traj_list = np.asarray(trajectory_list)
+    axes[0].scatter(traj_list[:,0], traj_list[:,1], s=5, c="green")
+
     axes[0].set_title("state space")
     axes[0].grid()
 
