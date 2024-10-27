@@ -74,8 +74,8 @@ def plot_linear_angular_errors(linear_filename, angular_filename, control_type, 
 
     axes[0].legend()
     axes[0].grid()
-    axes[0].set_xlabel("Error Value")
-    axes[0].set_ylabel("Time [ns]")
+    axes[0].set_ylabel("Error Value")
+    axes[0].set_xlabel("Time [ns]")
 
     headers, values=FileReader(angular_filename).read_file()
     
@@ -95,8 +95,8 @@ def plot_linear_angular_errors(linear_filename, angular_filename, control_type, 
 
     axes[1].legend()
     axes[1].grid()
-    axes[1].set_xlabel("Error Value")
-    axes[1].set_ylabel("Time [ns]")
+    axes[1].set_ylabel("Error Value")
+    axes[1].set_xlabel("Time [ns]")
     
 
 def plot(control_type: str, trajectory: str):
