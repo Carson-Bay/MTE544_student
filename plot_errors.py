@@ -75,7 +75,7 @@ def plot_linear_angular_errors(linear_filename, angular_filename, control_type, 
     axes[0].legend()
     axes[0].grid()
     axes[0].set_xlabel("Error Value")
-    axes[0].set_ylabel("Time [s]")
+    axes[0].set_ylabel("Time [ns]")
 
     headers, values=FileReader(angular_filename).read_file()
     
@@ -96,7 +96,7 @@ def plot_linear_angular_errors(linear_filename, angular_filename, control_type, 
     axes[1].legend()
     axes[1].grid()
     axes[1].set_xlabel("Error Value")
-    axes[1].set_ylabel("Time [s]")
+    axes[1].set_ylabel("Time [ns]")
     
 
 def plot(control_type: str, trajectory: str):
@@ -133,7 +133,7 @@ def plot(control_type: str, trajectory: str):
 
     axes[1].legend()
     axes[1].grid()
-    axes[1].set_xlabel("Time [s]")
+    axes[1].set_xlabel("Time [ns]")
     axes[1].set_ylabel("Value")
 
     plot_linear_angular_errors(f"linear_{control_type}_{trajectory}.csv", f"angular_{control_type}_{trajectory}.csv", control_type, trajectory)
