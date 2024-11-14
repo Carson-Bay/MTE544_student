@@ -47,19 +47,20 @@ class localization(Node):
         
         # TODO Part 3: Set up the quantities for the EKF (hint: you will need the functions for the states and measurements)
         
-        x= ...
+        # initializing all states at 0
+        x= np.array([0, 0, 0, 0, 0, 0])
         
-        Q= ...
-
-        R= ...
+        # Not fully confident in these matrices being 6x6
+        Q= 0.5 * np.identity(6) #process covariance
+        R= 0.5 * np.identity(6) #measurement covarian
         
-        P= ... # initial covariance
+        P= Q # initial covariance
         
         self.kf=kalman_filter(P,Q,R, x, dt)
         
         # TODO Part 3: Use the odometry and IMU data for the EKF
-        self.odom_sub=message_filters.Subscriber(...)
-        self.imu_sub=message_filters.Subscriber(...)
+        self.odom_sub=message_filters.Subscriber(self, odom,"/odom")
+        self.imu_sub=message_filters.Subscriber(self, Imu,"/imu")
         
         time_syncher=message_filters.ApproximateTimeSynchronizer([self.odom_sub, self.imu_sub], queue_size=10, slop=0.1)
         time_syncher.registerCallback(self.fusion_callback)
@@ -71,11 +72,31 @@ class localization(Node):
         # your measurements are the linear velocity and angular velocity from odom msg
         # and linear acceleration in x and y from the imu msg
         # the kalman filter should do a proper integration to provide x,y and filter ax,ay
-        z=...
+        
+
+        v = odom_msg.
+        w = odom_msg. 
+        
+        z= [v, w, ax, ay]
         
         # Implement the two steps for estimation
         ...
+
+        # Pseudo code taken from README part 3:
+
+        # Prediction step:
+        x = f(x, u) # This is the motion model function
+        P = A*P*A^T + Q # note that Q is the covariance matrix of the states
+
+        # Update step:
+
+        S = C*P*C^T + R # note that R is the covariance matrix of the measurements
+        K = P*C^T*inv(S)
+        Y_bar = z - h(x) # h is the measurement function
+        x = x + K*Y_bar
+        P = (1 - K*C)*P
         
+
         # Get the estimate
         xhat=self.kf.get_states()
 
