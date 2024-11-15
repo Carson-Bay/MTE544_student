@@ -73,8 +73,8 @@ class localization(Node):
         # and linear acceleration in x and y from the imu msg
         # the kalman filter should do a proper integration to provide x,y and filter ax,ay
         
-        v = odom_msg.pose.pose.
-        w = odom_msg.pose.pose.
+        v = odom_msg.twist.twist.linear.x
+        w = odom_msg.twist.twist.angular.z
         ax = imu_msg.linear_acceleration.x
         ay = imu_msg.linear_acceleration.y
         
