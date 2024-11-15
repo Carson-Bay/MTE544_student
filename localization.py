@@ -29,7 +29,7 @@ class localization(Node):
 
         super().__init__("localizer")
 
-        elf.loc_logger=Logger( loggerName , loggerHeaders)
+        self.loc_logger=Logger( loggerName , loggerHeaders)
         self.pose=None
         
         if type==rawSensors:
@@ -56,7 +56,7 @@ class localization(Node):
         
         P= Q # initial covariance
         
-        self.kf=kalman_filter(P,Q,R, x, dt)
+        self.kf=kalman_filter(P, Q, R, x, dt)
         
         # TODO Part 3: Use the odometry and IMU data for the EKF
         self.odom_sub=message_filters.Subscriber(self, odom,"/odom")
