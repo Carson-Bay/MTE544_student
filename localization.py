@@ -73,11 +73,12 @@ class localization(Node):
         # and linear acceleration in x and y from the imu msg
         # the kalman filter should do a proper integration to provide x,y and filter ax,ay
         
-
-        v = odom_msg.
-        w = odom_msg. 
+        v = odom_msg.pose.pose.
+        w = odom_msg.pose.pose.
+        ax = imu_msg.linear_acceleration.x
+        ay = imu_msg.linear_acceleration.y
         
-        z= [v, w, ax, ay]
+        z= np.array([v, w, ax, ay])
         
         # Implement the two steps for estimation
         ...
@@ -90,7 +91,7 @@ class localization(Node):
         self.kf.predict()
 
         # Update step:
-        self.kf.update()
+        self.kf.update(z)
 
         # S = C*P*C^T + R # note that R is the covariance matrix of the measurements
         # K = P*C^T*inv(S)
