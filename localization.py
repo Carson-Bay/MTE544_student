@@ -85,16 +85,18 @@ class localization(Node):
         # Pseudo code taken from README part 3:
 
         # Prediction step:
-        x = f(x, u) # This is the motion model function
-        P = A*P*A^T + Q # note that Q is the covariance matrix of the states
+        # x = f(x, u) # This is the motion model function
+        # P = A*P*A^T + Q # note that Q is the covariance matrix of the states
+        self.kf.predict()
 
         # Update step:
+        self.kf.update()
 
-        S = C*P*C^T + R # note that R is the covariance matrix of the measurements
-        K = P*C^T*inv(S)
-        Y_bar = z - h(x) # h is the measurement function
-        x = x + K*Y_bar
-        P = (1 - K*C)*P
+        # S = C*P*C^T + R # note that R is the covariance matrix of the measurements
+        # K = P*C^T*inv(S)
+        # Y_bar = z - h(x) # h is the measurement function
+        # x = x + K*Y_bar
+        # P = (1 - K*C)*P
         
 
         # Get the estimate
