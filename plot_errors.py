@@ -20,9 +20,13 @@ def plot_errors(filename):
     fig, axes = plt.subplots(2,1, figsize=(14,6))
 
 
-    axes[0].plot([lin[len(headers) - 3] for lin in values], [lin[len(headers) - 2] for lin in values])
+    axes[0].plot([lin[len(headers) - 3] for lin in values], [lin[len(headers) - 2] for lin in values], label="kf estimate")
+    axes[0].plot([lin[len(headers) - 5] for lin in values], [lin[len(headers) - 4] for lin in values], label="odom")
     axes[0].set_title("state space")
+    axes[0].set_xlim([-2, 2])
+    axes[0].set_ylim([-2, 2])
     axes[0].grid()
+    axes[0].legend()
 
     
     axes[1].set_title("each individual state")
