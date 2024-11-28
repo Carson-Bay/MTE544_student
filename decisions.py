@@ -29,7 +29,7 @@ from geometry_msgs.msg import PoseStamped
 class decision_maker(Node):
     
     
-    def __init__(self, publisher_msg, publishing_topic, qos_publisher, rate=10, motion_type=POINT_PLANNER):
+    def __init__(self, publisher_msg, publishing_topic, qos_publisher, rate=10, motion_type=POINT_PLANNER, localizer=kalmanFilter):
 
         super().__init__("decision_maker")
 
@@ -43,10 +43,11 @@ class decision_maker(Node):
         publishing_period=1/rate
 
         # TODO PART 5 choose your threshold
-        self.reachThreshold=...
+        # NOTE: ARBITRARY VALUE CHOSEN FOR NOW
+        self.reachThreshold=0.01
 
         # TODO PART 5 your localization type
-        self.localizer=localization(...)
+        self.localizer=localization(localizer)
 
 
         
@@ -57,7 +58,14 @@ class decision_maker(Node):
         
         elif motion_type==TRAJECTORY_PLANNER:
             # TODO PART 5 Bonus Put the gains that you conclude from lab 2
-            self.controller=trajectoryController(...)      
+            self.controller=trajectoryController(
+                klp=0.3, # linear P
+                klv=0.5, # linear D
+                kli=0.2, # linear I
+                kap=1.3, # angular P
+                kav=0.4, # angular D
+                kai=0.2, # angular I
+            )      
             self.planner=planner(TRAJECTORY_PLANNER)
         
         else:
