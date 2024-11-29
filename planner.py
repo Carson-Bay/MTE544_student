@@ -60,6 +60,7 @@ class planner:
 
 
 if __name__=="__main__":
+    rclpy.init()
 
     m_utilites=mapManipulator()
     
