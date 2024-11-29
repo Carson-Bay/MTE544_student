@@ -189,7 +189,7 @@ def search(maze: np.ndarray, start: tuple, end: tuple, heuristic=MANHATTAN):
         for new_position in move:
 
             # TODO PART 4 Get node position
-            node_position = (curr_pos + movement for curr_pos, movement in zip(current_node, new_position))
+            node_position = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
 
             # TODO PART 4 Make sure within range (check if within maze boundary)
             if new_position[0] >= no_rows or new_position[1] >= no_columns:
@@ -217,7 +217,7 @@ def search(maze: np.ndarray, start: tuple, end: tuple, heuristic=MANHATTAN):
             # NOTE Assuming a diagonal move costs the SAME as a purely horizontal/vertical move
             child.g = current_node.g + 1
             # Heuristic costs calculated here, this is using eucledian distance
-            child.h = heuristic(child, end_node)
+            child.h = heuristic_func(child, end_node)
 
             child.f = child.g + child.h
 

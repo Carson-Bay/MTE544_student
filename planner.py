@@ -68,4 +68,7 @@ if __name__=="__main__":
 
     # you can use this part of the code to test your 
     # search algorithm regardless of the ros2 hassles
-    
+    print(map_likelihood)
+    plnnr = planner(TRAJECTORY_PLANNER)
+    plnnr.initTrajectoryPlanner()
+    print(plnnr.trajectory_planner((0,0), (1,1)))
