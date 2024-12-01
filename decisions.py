@@ -84,6 +84,7 @@ class decision_maker(Node):
 
     # This is for the rviz2 interface
     def designPathFor(self, msg: PoseStamped):
+        print("Designing ")
         
         spin_once(self.localizer)
         
@@ -144,7 +145,7 @@ class decision_maker(Node):
 
 
     def publishPathOnRviz2(self, path):
-
+        print("Trying to Publish Path")
         Path_ =  Path()
 
         Path_.header.frame_id ="map"

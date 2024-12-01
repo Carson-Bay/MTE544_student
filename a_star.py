@@ -73,7 +73,7 @@ def euclidean_heuristic(curr_pos, end_pos) -> float:
     return sqrt(delta_x ** 2 + delta_y ** 2)
 
 
-def search(maze: np.ndarray, start: tuple, end: tuple, heuristic=MANHATTAN):
+def search(maze: np.ndarray, start: tuple, end: tuple, heuristic=EUCLIDEAN):
 
     print("searching ....")
 
@@ -215,7 +215,7 @@ def search(maze: np.ndarray, start: tuple, end: tuple, heuristic=MANHATTAN):
 
             # TODO PART 4 Create the f, g, and h values
             # NOTE Assuming a diagonal move costs the SAME as a purely horizontal/vertical move
-            child.g = current_node.g + 1
+            child.g = current_node.g + heuristic_func(child.position, current_node.position)
             # Heuristic costs calculated here, this is using eucledian distance
             child.h = heuristic_func(child, end_node)
 
